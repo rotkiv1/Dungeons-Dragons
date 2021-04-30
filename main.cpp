@@ -13,7 +13,7 @@ class LoadingScreen {
             }
 
             gameText.setFont(gameFont);
-            gameText.setPosition(420.f, 600.f);
+            gameText.setPosition(407.f, 600.f);
             gameText.setString("Dungeons\n\t\t\t&\n  Dragons");
             gameText.setCharacterSize(60);
             gameText.setColor(sf::Color::White);
@@ -66,7 +66,7 @@ class LoadingScreen {
         }
 
         void handlePlayerInput(sf::Keyboard::Key key, bool isPressed) {
-            if(isPressed)std:: cout <<5;
+
         }
 
         void update(sf::Time deltaTime) {
