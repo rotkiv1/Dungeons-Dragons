@@ -1,20 +1,55 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <memory>
+#include <windows.h>
 
 class Screen2 {
     public:
 
-        Screen2(std::shared_ptr<sf::RenderWindow> previous) {
-            if (!textureBackground.loadFromFile("screen2.png")) {
-                //error.
+        Screen2(std::shared_ptr<sf::RenderWindow> previous)
+        : screen(previous) {
+            if (!textureBackground.loadFromFile("background.png")) {
+                //error
+            }
+            if (!font.loadFromFile("gamefont.otf")) {
+                //error
             }
 
-            screen = previous;
+            s.setPosition(393.f, 100.f);
+            s.setFillColor(sf::Color::White);
+            s.setSize({5.f, 40.f});
+
+            gameText.setFont(font);
+            gameText.setPosition(230.f, 0.f);
+            gameText.setString("Enter your 4 crew members names");
+            gameText.setCharacterSize(60);
+            gameText.setColor(sf::Color::White);
+
+            float move = 0.f;
+            for (auto& user : userNames) {
+                user.setFont(font);
+                user.setColor(sf::Color::White);
+                user.setCharacterSize(60);
+                user.setPosition(400.f, 80.f + move);
+                move += 70.f;
+            }
 
             background.setTexture(textureBackground);
             background.setPosition(-150.f, -40.f);
             background.setScale(0.6, 0.6);
+
+            float moveNum = 0.f;
+            auto number = '1';
+            for (auto& numerate : counter) {
+                numerate.setFont(font);
+                numerate.setColor(sf::Color::White);
+                numerate.setCharacterSize(60);
+                numerate.setPosition(350.f, 80.f + moveNum);
+                numerate.setString(number);
+                numerate.setString(numerate.getString() + '.');
+                moveNum += 70.f;
+                number++;
+            }
         }
 
         void run() {
@@ -26,7 +61,7 @@ class Screen2 {
                 while (timeSinceLastUpdate > TimePerFrame) {
                     timeSinceLastUpdate -= TimePerFrame;
                     processEvents();
-                    update(TimePerFrame);
+                    update();
 
                 }
                 render();
@@ -39,9 +74,8 @@ class Screen2 {
             sf::Event event;
             while (screen->pollEvent(event)) {
                 switch (event.type) {
-                    case sf::Event::MouseButtonPressed:
-                        std::cout << 6;
-                      //  handlePlayerInput(event.mouseButton.button, true);
+                    case sf::Event::TextEntered:
+                        handlePlayerInput(event.key.code);
                         break;
                     case sf::Event::Closed:
                         screen->close();
@@ -50,28 +84,72 @@ class Screen2 {
             }
         }
 
-        void update(sf::Time deltaTime) {
+        void handlePlayerInput(sf::Keyboard::Key name) {
+            //check if key typed equals enter
+            if (name == 13) {
+                if (i < 3) {
+                    i++;
+                    moveCursor += 70.f;
+                } else {
+                    // start new screen
+                }
+            } else if (name == 8) /* check for backspace to delete last entered character */ {
+                if (!names[i].empty()) {
+                    names[i].pop_back();
+                }
+            } else {
+                names[i] += static_cast<char>(name);
+            }
+            userNames[i].setString(names[i]);
+            s.setPosition({403.f + userNames[i].getLocalBounds().width, 100.f + moveCursor});
+        }
 
+        void update() {
+            if (count % 2 == 1) {
+                s.setSize({0.f, 0.f});
+            } else {
+                s.setSize({5.f, 40.f});
+            }
+            count++;
         }
 
         void render() {
             screen->clear();
             screen->draw(background);
+            screen->draw(gameText);
+            for (const auto& numerator : counter) {
+                screen->draw(numerator);
+            }
+            screen->draw(s);
+            for (const auto& user : userNames) {
+                screen->draw(user);
+            }
             screen->display();
         }
 
         sf::Sprite background;
         sf::Texture textureBackground;
-        sf::Time TimePerFrame = sf::seconds(1.f / 120.f);
+        sf::Font font;
+        sf::Text gameText;
+        sf::Text userName1, userName2, userName3, userName4;
+        sf::Text one, two, three, four;
+        sf::Time TimePerFrame = sf::seconds(1.f / 2.5);
         std::shared_ptr<sf::RenderWindow> screen;
+        std::vector<sf::Text> counter{one, two, three, four};
+        std::vector<std::string> names{"", "", "", ""};
+        std::vector<sf::Text> userNames{userName1, userName2, userName3, userName4};
+        sf::RectangleShape s;
+        int i = 0;
+        int count = 1;
+        float moveCursor = 0.f;
 };
-
 
 class LoadingScreen {
     public:
 
-        LoadingScreen() : mWindow(std::make_shared<sf::RenderWindow>(sf::VideoMode(1000, 600), "D&D")) {
-            if (!textureBackground.loadFromFile("image.png")) {
+        LoadingScreen()
+        : mWindow(std::make_shared<sf::RenderWindow>(sf::VideoMode(1000, 600), "D&D")) {
+            if (!textureBackground.loadFromFile("background.png")) {
                 //error
             }
             if (!gameFont.loadFromFile("gamefont.otf")) {
@@ -79,9 +157,9 @@ class LoadingScreen {
             }
 
             gameText.setFont(gameFont);
-            gameText.setPosition(407.f, 600.f);
+            gameText.setPosition(385.f, 600.f);
             gameText.setString("Dungeons\n\t\t\t&\n  Dragons");
-            gameText.setCharacterSize(60);
+            gameText.setCharacterSize(80);
             gameText.setColor(sf::Color::White);
 
             beginButton.setFont(gameFont);
