@@ -1,7 +1,147 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <memory>
+#include <chrono>
+#include <thread>
 #include <windows.h>
+
+
+class Person {
+    public:
+
+        Person(std::string _name) : name(_name) {}
+
+        std::string name;
+        int fullness = 10;
+        bool isAlive = true;
+        std::string armor;
+        std::string weapon;
+        int ingredientsAmount = 0;
+};
+
+class MerchantScreen {
+    public:
+
+        MerchantScreen(std::shared_ptr<sf::RenderWindow> previous,
+                       const std::vector<Person>& _companion)
+        : screen(previous), companion(_companion) {
+            if (!merchant.loadFromFile("a.jpg")) {
+                /* error */
+            }
+            if (!font.loadFromFile("gamefont.otf")) {
+                /* error */
+            }
+
+            merchantSprite.setTexture(merchant);
+            merchantSprite.setPosition(-150.f, -40.f);
+            merchantSprite.setScale(0.6, 0.6);
+
+            introduce.setFont(font);
+            introduce.setColor(sf::Color(204, 102, 0));
+            introduce.setCharacterSize(40);
+            introduce.setPosition(0.f, 70.f);
+
+            warning.setFont(font);
+            warning.setColor(sf::Color(204, 102, 0));
+            warning.setCharacterSize(40);
+            warning.setPosition(300.f, 400.f);
+
+            store.setFont(font);
+            store.setColor(sf::Color(204, 102, 0));
+            store.setCharacterSize(60);
+            store.setPosition(390.f, 240.f);
+        }
+
+         void run() {
+            sf::Clock clock;
+            sf::Time timeSinceLastUpdate = sf::Time::Zero;
+            while (screen->isOpen()) {
+                processEvents();
+                timeSinceLastUpdate += clock.restart();
+                while (timeSinceLastUpdate > TimePerFrame) {
+                    timeSinceLastUpdate -= TimePerFrame;
+                    processEvents();
+                    update();
+
+                }
+                render();
+            }
+        }
+
+    private:
+
+        void processEvents() {
+            sf::Event event;
+            while (screen->pollEvent(event)) {
+                switch (event.type) {
+                    case sf::Event::TextEntered:
+                        handlePlayerInput(event.key.code);
+                        break;
+                    case sf::Event::Closed:
+                        screen->close();
+                        break;
+                }
+            }
+        }
+
+        void handlePlayerInput(sf::Keyboard::Key name) {
+
+        }
+
+        void update() {
+            if (iText < strlen(text)) {
+                introduce.setString(introduce.getString() + text[iText++]);
+                if (text[iText - 1] == '\n' && iText < 150) {
+                    introduce.setString("");
+                }
+            } else {
+                if (iWarning < strlen(text2)) {
+                    warning.setString(warning.getString() + text2[iWarning++]);
+                } else {
+                    warning.setString("");
+                    introduce.setString("");
+                    store.setString("STORE");
+                    using namespace std::literals;
+                    std::this_thread::sleep_for(750ms);
+                    if (!merchant.loadFromFile("background.png")) {
+                        /* error */
+                    }
+                }
+            }
+        }
+
+        void render() {
+            screen->clear();
+            screen->draw(merchantSprite);
+            screen->draw(introduce);
+            screen->draw(warning);
+            screen->draw(store);
+            screen->display();
+        }
+
+        std::shared_ptr<sf::RenderWindow> screen;
+        std::vector<Person> companion;
+        sf::Time TimePerFrame = sf::seconds(1.f / 300.f); /* 1 / 30.f is fine */
+        sf::Sprite background;
+        sf::Texture textureBackground;
+        sf::Texture merchant;
+        sf::Sprite merchantSprite;
+        sf::Text introduce, warning, store;
+        sf::Font font;
+        char* text{"\t\tBetween the 4 of you, you have 100 gold coins. \n\t\t"
+                   "You will need to spend the rest of your money \n\t\t on the following items: \n\t\t"
+                   "- INGREDIENTS. To make food, you have to cook raw ingredients.\n\t\t"
+                   "- COOKWARE. If you want to cook, you have to have cookware first.\n\t\t"
+                   "- WEAPONS. You will want at least one weapon per party member to fend off monsters.\n\t\t"
+                   "- ARMOR. Armor increases the chances of surviving a monster attack.\n\t\t"};
+        char* text2{"You can spend all of your money here before you start your\n"
+                    "journey, or you can save some to spend on merchants along the\n"
+                    "way. But beware, some of the merchants in this dungeon are\n"
+                    "shady characters, and they will not always give you a fair price...\n"};
+        int iText = 0;
+        int iWarning = 0;
+};
+
 
 class Screen2 {
     public:
@@ -9,26 +149,26 @@ class Screen2 {
         Screen2(std::shared_ptr<sf::RenderWindow> previous)
         : screen(previous) {
             if (!textureBackground.loadFromFile("background.png")) {
-                //error
+                /* error */
             }
             if (!font.loadFromFile("gamefont.otf")) {
-                //error
+                /* error */
             }
 
             s.setPosition(393.f, 100.f);
-            s.setFillColor(sf::Color::White);
+            s.setFillColor(sf::Color(204, 102, 0));
             s.setSize({5.f, 40.f});
 
             gameText.setFont(font);
             gameText.setPosition(230.f, 0.f);
             gameText.setString("Enter your 4 crew members names");
             gameText.setCharacterSize(60);
-            gameText.setColor(sf::Color::White);
+            gameText.setColor(sf::Color(204, 102, 0));
 
-            float move = 0.f;
+            auto move = 0.f;
             for (auto& user : userNames) {
                 user.setFont(font);
-                user.setColor(sf::Color::White);
+                user.setColor(sf::Color(204, 102, 0));
                 user.setCharacterSize(60);
                 user.setPosition(400.f, 80.f + move);
                 move += 70.f;
@@ -38,11 +178,11 @@ class Screen2 {
             background.setPosition(-150.f, -40.f);
             background.setScale(0.6, 0.6);
 
-            float moveNum = 0.f;
+            auto moveNum = 0.f;
             auto number = '1';
             for (auto& numerate : counter) {
                 numerate.setFont(font);
-                numerate.setColor(sf::Color::White);
+                numerate.setColor(sf::Color(204, 102, 0));
                 numerate.setCharacterSize(60);
                 numerate.setPosition(350.f, 80.f + moveNum);
                 numerate.setString(number);
@@ -85,13 +225,18 @@ class Screen2 {
         }
 
         void handlePlayerInput(sf::Keyboard::Key name) {
-            //check if key typed equals enter
+            /* check if key typed equals enter */
             if (name == 13) {
                 if (i < 3) {
                     i++;
                     moveCursor += 70.f;
                 } else {
-                    // start new screen
+                    /* start new screen and create company */
+                    for (auto& person : names) {
+                        companion.push_back(Person(person));
+                    }
+                    MerchantScreen ms(screen, companion);
+                    ms.run();
                 }
             } else if (name == 8) /* check for backspace to delete last entered character */ {
                 if (!names[i].empty()) {
@@ -142,6 +287,7 @@ class Screen2 {
         int i = 0;
         int count = 1;
         float moveCursor = 0.f;
+        std::vector<Person> companion;
 };
 
 class LoadingScreen {
@@ -160,13 +306,13 @@ class LoadingScreen {
             gameText.setPosition(385.f, 600.f);
             gameText.setString("Dungeons\n\t\t\t&\n  Dragons");
             gameText.setCharacterSize(80);
-            gameText.setColor(sf::Color::White);
+            gameText.setColor(sf::Color(204, 102, 0));
 
             beginButton.setFont(gameFont);
             beginButton.setPosition(420.f, 0.f);
             beginButton.setString("BEGIN");
             beginButton.setCharacterSize(60);
-            beginButton.setColor(sf::Color::White);
+            beginButton.setColor(sf::Color(204, 102, 0));
 
             background.setTexture(textureBackground);
             background.setPosition(-150.f, -40.f);
@@ -278,6 +424,14 @@ class LoadingScreen {
 };
 
 int main() {
-    LoadingScreen l;
-    l.run();
+    /*
+    auto p = std::make_shared<sf::RenderWindow>(sf::VideoMode(1000, 600), "D&D");
+    std::vector<Person> w;
+
+    MerchantScreen s(p, w);
+    s.run();
+    */
+
+    LoadingScreen s;
+    s.run();
 }
