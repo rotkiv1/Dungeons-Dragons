@@ -25,12 +25,20 @@ class MerchantScreen {
         MerchantScreen(std::shared_ptr<sf::RenderWindow> previous,
                        const std::vector<Person>& _companion)
         : screen(previous), companion(_companion) {
-            if (!merchant.loadFromFile("a.jpg")) {
+            if (!merchant.loadFromFile("background.png")) {
                 /* error */
             }
             if (!font.loadFromFile("gamefont.otf")) {
                 /* error */
             }
+
+            image.loadFromFile("test.png");
+            image.createMaskFromColor(sf::Color::White);
+            tex.loadFromImage(image);
+
+            creature.setTexture(tex);
+            creature.setPosition(-75.f, 600.f);
+            creature.setScale(0.6, 0.6);
 
             merchantSprite.setTexture(merchant);
             merchantSprite.setPosition(-150.f, -40.f);
@@ -45,11 +53,6 @@ class MerchantScreen {
             warning.setColor(sf::Color(204, 102, 0));
             warning.setCharacterSize(40);
             warning.setPosition(300.f, 400.f);
-
-            store.setFont(font);
-            store.setColor(sf::Color(204, 102, 0));
-            store.setCharacterSize(60);
-            store.setPosition(390.f, 240.f);
         }
 
          void run() {
@@ -61,7 +64,7 @@ class MerchantScreen {
                 while (timeSinceLastUpdate > TimePerFrame) {
                     timeSinceLastUpdate -= TimePerFrame;
                     processEvents();
-                    update();
+                    update(TimePerFrame);
 
                 }
                 render();
@@ -88,23 +91,30 @@ class MerchantScreen {
 
         }
 
-        void update() {
-            if (iText < strlen(text)) {
-                introduce.setString(introduce.getString() + text[iText++]);
-                if (text[iText - 1] == '\n' && iText < 150) {
-                    introduce.setString("");
-                }
+        void update(sf::Time deltaTime) {
+            if (creature.getPosition().y > 280.f) {
+                creature.move(move * deltaTime.asSeconds());
             } else {
-                if (iWarning < strlen(text2)) {
-                    warning.setString(warning.getString() + text2[iWarning++]);
+                TimePerFrame = sf::seconds(1.f / 130.f);
+                if (iText < strlen(text)) {
+                    introduce.setString(introduce.getString() + text[iText++]);
+                    if (text[iText - 1] == '\n' && iText < 150) {
+                        introduce.setString("");
+                    }
                 } else {
-                    warning.setString("");
-                    introduce.setString("");
-                    store.setString("STORE");
-                    using namespace std::literals;
-                    std::this_thread::sleep_for(750ms);
-                    if (!merchant.loadFromFile("background.png")) {
-                        /* error */
+                    if (iWarning < strlen(text2)) {
+                        warning.setString(warning.getString() + text2[iWarning++]);
+                    } else {
+                        warning.setString("");
+                        introduce.setString("");
+                        TimePerFrame = sf::seconds(1.f / 120.f);
+                        move.y = 200.f;
+                        if (creature.getPosition().y <= 1200.f) {
+                            creature.move(move * deltaTime.asSeconds());
+                        }
+                        if (!merchant.loadFromFile("background.png")) {
+                            /* error */
+                        }
                     }
                 }
             }
@@ -115,18 +125,18 @@ class MerchantScreen {
             screen->draw(merchantSprite);
             screen->draw(introduce);
             screen->draw(warning);
-            screen->draw(store);
+            screen->draw(creature);
             screen->display();
         }
 
         std::shared_ptr<sf::RenderWindow> screen;
         std::vector<Person> companion;
-        sf::Time TimePerFrame = sf::seconds(1.f / 300.f); /* 1 / 30.f is fine */
+        sf::Time TimePerFrame = sf::seconds(1.f / 120.f); /* 1 / 30.f is fine */
         sf::Sprite background;
         sf::Texture textureBackground;
         sf::Texture merchant;
         sf::Sprite merchantSprite;
-        sf::Text introduce, warning, store;
+        sf::Text introduce, warning;
         sf::Font font;
         char* text{"\t\tBetween the 4 of you, you have 100 gold coins. \n\t\t"
                    "You will need to spend the rest of your money \n\t\t on the following items: \n\t\t"
@@ -140,6 +150,10 @@ class MerchantScreen {
                     "shady characters, and they will not always give you a fair price...\n"};
         int iText = 0;
         int iWarning = 0;
+        sf::Image image;
+        sf::Texture tex;
+        sf::Sprite creature;
+        sf::Vector2f move{0.f, -200.f};
 };
 
 
@@ -431,7 +445,8 @@ int main() {
     MerchantScreen s(p, w);
     s.run();
     */
-
     LoadingScreen s;
     s.run();
+
+
 }
