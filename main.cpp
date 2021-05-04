@@ -5,7 +5,6 @@
 #include <thread>
 #include <windows.h>
 
-
 class Person {
     public:
 
@@ -25,24 +24,20 @@ class MerchantScreen {
         MerchantScreen(std::shared_ptr<sf::RenderWindow> previous,
                        const std::vector<Person>& _companion)
         : screen(previous), companion(_companion) {
-            if (!merchant.loadFromFile("background.png")) {
-                /* error */
-            }
-            if (!font.loadFromFile("gamefont.otf")) {
-                /* error */
-            }
+            font.loadFromFile("gamefont.otf");
 
-            image.loadFromFile("test.png");
-            image.createMaskFromColor(sf::Color::White);
+            image.loadFromFile("seller.png");
+            image.createMaskFromColor(sf::Color::Black);
             tex.loadFromImage(image);
 
             creature.setTexture(tex);
-            creature.setPosition(-75.f, 600.f);
-            creature.setScale(0.6, 0.6);
+            creature.setPosition(-50.f, 600.f);
+            creature.setScale(1.1, 1.1);
 
+            merchant.loadFromFile("background.png");
             merchantSprite.setTexture(merchant);
             merchantSprite.setPosition(-150.f, -40.f);
-            merchantSprite.setScale(0.6, 0.6);
+            merchantSprite.setScale(0.65, 0.65);
 
             introduce.setFont(font);
             introduce.setColor(sf::Color(204, 102, 0));
@@ -109,11 +104,8 @@ class MerchantScreen {
                         introduce.setString("");
                         TimePerFrame = sf::seconds(1.f / 120.f);
                         move.y = 200.f;
-                        if (creature.getPosition().y <= 1200.f) {
+                        if (creature.getPosition().y <= 1000.f) {
                             creature.move(move * deltaTime.asSeconds());
-                        }
-                        if (!merchant.loadFromFile("background.png")) {
-                            /* error */
                         }
                     }
                 }
@@ -156,18 +148,12 @@ class MerchantScreen {
         sf::Vector2f move{0.f, -200.f};
 };
 
-
 class Screen2 {
     public:
 
         Screen2(std::shared_ptr<sf::RenderWindow> previous)
         : screen(previous) {
-            if (!textureBackground.loadFromFile("background.png")) {
-                /* error */
-            }
-            if (!font.loadFromFile("gamefont.otf")) {
-                /* error */
-            }
+            font.loadFromFile("gamefont.otf");
 
             s.setPosition(393.f, 100.f);
             s.setFillColor(sf::Color(204, 102, 0));
@@ -188,9 +174,10 @@ class Screen2 {
                 move += 70.f;
             }
 
+            textureBackground.loadFromFile("background.png");
             background.setTexture(textureBackground);
             background.setPosition(-150.f, -40.f);
-            background.setScale(0.6, 0.6);
+            background.setScale(0.65, 0.65);
 
             auto moveNum = 0.f;
             auto number = '1';
@@ -309,18 +296,15 @@ class LoadingScreen {
 
         LoadingScreen()
         : mWindow(std::make_shared<sf::RenderWindow>(sf::VideoMode(1000, 600), "D&D")) {
-            if (!textureBackground.loadFromFile("background.png")) {
-                //error
-            }
-            if (!gameFont.loadFromFile("gamefont.otf")) {
-                //error
-            }
+            gameFont.loadFromFile("gamefont.otf");
 
-            gameText.setFont(gameFont);
-            gameText.setPosition(385.f, 600.f);
-            gameText.setString("Dungeons\n\t\t\t&\n  Dragons");
-            gameText.setCharacterSize(80);
-            gameText.setColor(sf::Color(204, 102, 0));
+            image.loadFromFile("dd.png");
+            image.createMaskFromColor(sf::Color::Black);
+            tex.loadFromImage(image);
+
+            s.setTexture(tex);
+            s.setPosition(195.f, -100.f);
+            s.setScale(0.9, 0.9);
 
             beginButton.setFont(gameFont);
             beginButton.setPosition(420.f, 0.f);
@@ -328,9 +312,10 @@ class LoadingScreen {
             beginButton.setCharacterSize(60);
             beginButton.setColor(sf::Color(204, 102, 0));
 
+            textureBackground.loadFromFile("background.png");
             background.setTexture(textureBackground);
             background.setPosition(-150.f, -40.f);
-            background.setScale(0.6, 0.6);
+            background.setScale(0.65, 0.65);
         }
 
         ~LoadingScreen() = default;
@@ -383,14 +368,13 @@ class LoadingScreen {
 
         void update(sf::Time deltaTime) {
             onButton();
-            updateGameText(deltaTime);
             updateButton(deltaTime);
         }
 
         void render() {
             mWindow->clear();
             mWindow->draw(background);
-            mWindow->draw(gameText);
+            mWindow->draw(s);
             mWindow->draw(beginButton);
             mWindow->display();
         }
@@ -410,14 +394,6 @@ class LoadingScreen {
             }
         }
 
-        void updateGameText(sf::Time deltaTime) noexcept {
-            sf::Vector2f moveGameText{0.f, -350.f};
-            if (gameText.getPosition().y <= 0.f) {
-                moveGameText.y = 0.f;
-            }
-            gameText.move(moveGameText * deltaTime.asSeconds());
-        }
-
         void updateButton(sf::Time deltaTime) noexcept {
             sf::Vector2f moveButton{0, 350.f};
             if (beginButton.getPosition().y >= 480.f) {
@@ -432,8 +408,10 @@ class LoadingScreen {
         std::shared_ptr<sf::RenderWindow> mWindow;
         sf::Sprite background;
         sf::Texture textureBackground;
+        sf::Image image;
+        sf::Texture tex;
+        sf::Sprite s;
         sf::Time TimePerFrame = sf::seconds(1.f / 120.f);
-
         bool isClicked = false;
 };
 
