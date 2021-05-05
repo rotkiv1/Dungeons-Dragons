@@ -40,14 +40,22 @@ class MerchantScreen {
             merchantSprite.setScale(0.65, 0.65);
 
             introduce.setFont(font);
-            introduce.setColor(sf::Color(204, 102, 0));
+            introduce.setColor(sf::Color::Black);
             introduce.setCharacterSize(40);
-            introduce.setPosition(0.f, 70.f);
+            introduce.setPosition(230.f, 70.f);
 
             warning.setFont(font);
-            warning.setColor(sf::Color(204, 102, 0));
-            warning.setCharacterSize(40);
-            warning.setPosition(300.f, 400.f);
+            warning.setColor(sf::Color::Black);
+            warning.setCharacterSize(35);
+            warning.setPosition(230.f, 70.f);
+
+            cloud.loadFromFile("text.png");
+            cloud.createMaskFromColor(sf::Color::Black);
+            cloudTex.loadFromImage(cloud);
+
+            textCloud.setTexture(cloudTex);
+            textCloud.setPosition(80.f, -20.f);
+            textCloud.setScale(0.f, 0.f);
         }
 
          void run() {
@@ -87,13 +95,14 @@ class MerchantScreen {
         }
 
         void update(sf::Time deltaTime) {
-            if (creature.getPosition().y > 280.f) {
+            if (creature.getPosition().y > 300.f) {
                 creature.move(move * deltaTime.asSeconds());
             } else {
-                TimePerFrame = sf::seconds(1.f / 130.f);
+                textCloud.setScale(1.3, 1.f);
+                TimePerFrame = sf::seconds(1.f / 20.f);
                 if (iText < strlen(text)) {
                     introduce.setString(introduce.getString() + text[iText++]);
-                    if (text[iText - 1] == '\n' && iText < 150) {
+                    if (text[iText - 1] == '\n' && text[iText - 2] == '.') {
                         introduce.setString("");
                     }
                 } else {
@@ -101,10 +110,10 @@ class MerchantScreen {
                         warning.setString(warning.getString() + text2[iWarning++]);
                     } else {
                         warning.setString("");
-                        introduce.setString("");
+                        textCloud.setScale(0.f, 0.f);
                         TimePerFrame = sf::seconds(1.f / 120.f);
                         move.y = 200.f;
-                        if (creature.getPosition().y <= 1000.f) {
+                        if (creature.getPosition().y <= 900.f) {
                             creature.move(move * deltaTime.asSeconds());
                         }
                     }
@@ -115,6 +124,7 @@ class MerchantScreen {
         void render() {
             screen->clear();
             screen->draw(merchantSprite);
+            screen->draw(textCloud);
             screen->draw(introduce);
             screen->draw(warning);
             screen->draw(creature);
@@ -124,28 +134,30 @@ class MerchantScreen {
         std::shared_ptr<sf::RenderWindow> screen;
         std::vector<Person> companion;
         sf::Time TimePerFrame = sf::seconds(1.f / 120.f); /* 1 / 30.f is fine */
-        sf::Sprite background;
-        sf::Texture textureBackground;
-        sf::Texture merchant;
-        sf::Sprite merchantSprite;
+        sf::Sprite background, creature, textCloud, merchantSprite;
+        sf::Texture textureBackground, merchant, tex, cloudTex;
         sf::Text introduce, warning;
+        sf::Image image, cloud;
         sf::Font font;
-        char* text{"\t\tBetween the 4 of you, you have 100 gold coins. \n\t\t"
-                   "You will need to spend the rest of your money \n\t\t on the following items: \n\t\t"
-                   "- INGREDIENTS. To make food, you have to cook raw ingredients.\n\t\t"
-                   "- COOKWARE. If you want to cook, you have to have cookware first.\n\t\t"
-                   "- WEAPONS. You will want at least one weapon per party member to fend off monsters.\n\t\t"
-                   "- ARMOR. Armor increases the chances of surviving a monster attack.\n\t\t"};
-        char* text2{"You can spend all of your money here before you start your\n"
-                    "journey, or you can save some to spend on merchants along the\n"
-                    "way. But beware, some of the merchants in this dungeon are\n"
-                    "shady characters, and they will not always give you a fair price...\n"};
         int iText = 0;
         int iWarning = 0;
-        sf::Image image;
-        sf::Texture tex;
-        sf::Sprite creature;
         sf::Vector2f move{0.f, -200.f};
+        char* text{"\t\tBetween the 4 of you, you have 100 gold  \n\t\t coins."
+                   "You will need to spend the rest of your \n\t\t money on the"
+                   "following items.\n"
+                   "\t\t\t\t\t\t\t\tINGREDIENTS\n To make food, you have to cook"
+                   "raw ingredients.\n\t\t"
+                   "\t\t\t\t\t\tCOOKWARE\n If you want to cook, you have to have"
+                   "cookware first.\n\t\t"
+                   "\t\t\t\t\t\t\t\tWEAPONS\n You will want at least one weapon"
+                   "per party\n member to fend off monsters.\n\t\t"
+                   "\t\t\t\t\t\t\t\tARMOR\n Armor increases the chances of"
+                   "surviving\n a monster attack.\n\t\t"};
+        char* text2{"\t\tYou can spend all of your money here before\n you start"
+                    "your journey, or you can save some to\n spend on merchants"
+                    "along the way. But beware, some of the\n merchants in this"
+                    "dungeon are shady characters, and they will\n\t\t not always"
+                    "give you a fair price...\n"};
 };
 
 class Screen2 {
@@ -155,6 +167,7 @@ class Screen2 {
         : screen(previous) {
             font.loadFromFile("gamefont.otf");
 
+            /* button | */
             s.setPosition(393.f, 100.f);
             s.setFillColor(sf::Color(204, 102, 0));
             s.setSize({5.f, 40.f});
@@ -165,6 +178,7 @@ class Screen2 {
             gameText.setCharacterSize(60);
             gameText.setColor(sf::Color(204, 102, 0));
 
+            /* create user names templates at certain position */
             auto move = 0.f;
             for (auto& user : userNames) {
                 user.setFont(font);
@@ -179,6 +193,7 @@ class Screen2 {
             background.setPosition(-150.f, -40.f);
             background.setScale(0.65, 0.65);
 
+            /* create and set number at certain position */
             auto moveNum = 0.f;
             auto number = '1';
             for (auto& numerate : counter) {
@@ -239,7 +254,8 @@ class Screen2 {
                     MerchantScreen ms(screen, companion);
                     ms.run();
                 }
-            } else if (name == 8) /* check for backspace to delete last entered character */ {
+            } else if (name == 8) /* check for backspace to delete
+                                     last entered character */ {
                 if (!names[i].empty()) {
                     names[i].pop_back();
                 }
@@ -247,9 +263,11 @@ class Screen2 {
                 names[i] += static_cast<char>(name);
             }
             userNames[i].setString(names[i]);
-            s.setPosition({403.f + userNames[i].getLocalBounds().width, 100.f + moveCursor});
+            s.setPosition({403.f + userNames[i].getLocalBounds().width,
+                          100.f + moveCursor});
         }
 
+        /* texture | showing -> hiding */
         void update() {
             if (count % 2 == 1) {
                 s.setSize({0.f, 0.f});
@@ -263,10 +281,12 @@ class Screen2 {
             screen->clear();
             screen->draw(background);
             screen->draw(gameText);
+            /* display 1. / 2. / 3. /4. on screen */
             for (const auto& numerator : counter) {
                 screen->draw(numerator);
             }
             screen->draw(s);
+            /* live display chars that user is entering */
             for (const auto& user : userNames) {
                 screen->draw(user);
             }
@@ -276,22 +296,22 @@ class Screen2 {
         sf::Sprite background;
         sf::Texture textureBackground;
         sf::Font font;
-        sf::Text gameText;
-        sf::Text userName1, userName2, userName3, userName4;
-        sf::Text one, two, three, four;
+        sf::Text userName1, userName2, userName3, userName4,
+                 gameText, one, two, three, four;
         sf::Time TimePerFrame = sf::seconds(1.f / 2.5);
+        sf::RectangleShape s;
         std::shared_ptr<sf::RenderWindow> screen;
         std::vector<sf::Text> counter{one, two, three, four};
         std::vector<std::string> names{"", "", "", ""};
         std::vector<sf::Text> userNames{userName1, userName2, userName3, userName4};
-        sf::RectangleShape s;
+        std::vector<Person> companion;
         int i = 0;
         int count = 1;
         float moveCursor = 0.f;
-        std::vector<Person> companion;
 };
 
 class LoadingScreen {
+
     public:
 
         LoadingScreen()
@@ -316,6 +336,7 @@ class LoadingScreen {
             background.setTexture(textureBackground);
             background.setPosition(-150.f, -40.f);
             background.setScale(0.65, 0.65);
+
         }
 
         ~LoadingScreen() = default;
@@ -330,7 +351,6 @@ class LoadingScreen {
                     timeSinceLastUpdate -= TimePerFrame;
                     processEvents();
                     update(TimePerFrame);
-
                 }
                 render();
             }
@@ -355,17 +375,15 @@ class LoadingScreen {
         void handlePlayerInput(sf::Mouse::Button key, bool isPressed) {
             sf::Vector2i position = sf::Mouse::getPosition(*mWindow);
             sf::Vector2f mousePosition = mWindow->mapPixelToCoords(position);
-            if (isPressed &&
-                mousePosition.x >= 420.f &&
-                mousePosition.x <= 420.f + beginButton.getLocalBounds().width &&
-                mousePosition.y >= 480.f  &&
-                mousePosition.y <= 520.f + beginButton.getLocalBounds().height &&
+            /* if we click on the button, go to next screen */
+            if (isPressed && checkMousePosition(mousePosition) &&
                 key == sf::Mouse::Left) {
-                    Screen2 s2(mWindow);
-                    s2.run();
-                }
+                Screen2 s2(mWindow);
+                s2.run();
+            }
         }
 
+        /* moving button from bottom to certain spot */
         void update(sf::Time deltaTime) {
             onButton();
             updateButton(deltaTime);
@@ -382,10 +400,7 @@ class LoadingScreen {
         void onButton() {
             sf::Vector2i position = sf::Mouse::getPosition(*mWindow);
             sf::Vector2f mousePosition = mWindow->mapPixelToCoords(position);
-            if (mousePosition.x >= 420.f &&
-                mousePosition.x <= 420.f + beginButton.getLocalBounds().width &&
-                mousePosition.y >= 480.f  &&
-                mousePosition.y <= 520.f + beginButton.getLocalBounds().height) {
+            if (checkMousePosition(mousePosition)) {
                 beginButton.setCharacterSize(80);
                 beginButton.setPosition(400.f, 460.f);
             } else {
@@ -394,7 +409,14 @@ class LoadingScreen {
             }
         }
 
-        void updateButton(sf::Time deltaTime) noexcept {
+        bool checkMousePosition(const sf::Vector2f& mousePosition) {
+            auto width =  beginButton.getLocalBounds().width;
+            auto height = beginButton.getLocalBounds().height;
+            return mousePosition.x >= 420.f && mousePosition.x <= 420.f + width &&
+                   mousePosition.y >= 480.f && mousePosition.y <= 520.f + height;
+        }
+
+        void updateButton(sf::Time deltaTime) {
             sf::Vector2f moveButton{0, 350.f};
             if (beginButton.getPosition().y >= 480.f) {
                 moveButton.y = 0.f;
@@ -403,14 +425,11 @@ class LoadingScreen {
         }
 
         sf::Font gameFont;
-        sf::Text gameText;
-        sf::Text beginButton;
+        sf::Text gameText, beginButton;
         std::shared_ptr<sf::RenderWindow> mWindow;
-        sf::Sprite background;
-        sf::Texture textureBackground;
+        sf::Sprite background, s;
+        sf::Texture textureBackground, tex;
         sf::Image image;
-        sf::Texture tex;
-        sf::Sprite s;
         sf::Time TimePerFrame = sf::seconds(1.f / 120.f);
         bool isClicked = false;
 };
@@ -422,9 +441,8 @@ int main() {
 
     MerchantScreen s(p, w);
     s.run();
+
     */
-    LoadingScreen s;
-    s.run();
-
-
+    LoadingScreen l;
+    l.run();
 }
