@@ -24,13 +24,117 @@ class Shop {
         Shop(std::shared_ptr<sf::RenderWindow> _screen,
              const std::vector<Person>& _companion)
         : screen(_screen), companion(_companion) {
+            font.loadFromFile("gamefont.otf");
+
+            totalCostText.setFont(font);
+            totalCostText.setCharacterSize(40);
+            totalCostText.setPosition(800.f, 0.f);
+            totalCostText.setString("cost \t left: \t" +
+                                    std::to_string(totalCost));
+
+            foodInfo.setFont(font);
+            foodInfo.setCharacterSize(0);
+            foodInfo.setPosition(100.f, 30.f);
+            foodInfo.setString("1kg - 1 coin \t (Already have: \t" +
+                               std::to_string(currentAmountFood) + "kg)");
+
+            image.loadFromFile("seller.png");
+            image.createMaskFromColor(sf::Color::Black);
+            tex.loadFromImage(image);
+
+            creature.setTexture(tex);
+            creature.setPosition(-50.f, 600.f);
+            creature.setScale(1.1, 1.1);
+
+            background.loadFromFile("shopbackground.jpg");
+            backgroundSprite.setTexture(background);
+            backgroundSprite.setScale(0.79, 0.79);
+
+            foodImage.loadFromFile("ing.png");
+            foodImage.createMaskFromColor(sf::Color::Black);
+            foodTexture.loadFromImage(foodImage);
+            foodSprite.setTexture(foodTexture);
+            foodSprite.setScale(0, 0);
+            foodSprite.rotate(50);
+            foodSprite.setPosition(60.f, 0.f);
         }
 
+    void run() {
+            sf::Clock clock;
+            sf::Time timeSinceLastUpdate = sf::Time::Zero;
+            while (screen->isOpen()) {
+                processEvents();
+                timeSinceLastUpdate += clock.restart();
+                while (timeSinceLastUpdate > TimePerFrame) {
+                    timeSinceLastUpdate -= TimePerFrame;
+                    processEvents();
+                    update(TimePerFrame);
+
+                }
+                render();
+            }
+        }
 
     private:
 
+        void processEvents() {
+            sf::Event event;
+            while (screen->pollEvent(event)) {
+                switch (event.type) {
+                    case sf::Event::MouseButtonPressed:
+                        handlePlayerInput(event.mouseButton.button, true);
+                        break;
+                    case sf::Event::Closed:
+                        screen->close();
+                        break;
+                }
+            }
+        }
+
+        void handlePlayerInput(sf::Mouse::Button key, bool isPressed) {
+            sf::Vector2i position = sf::Mouse::getPosition(*screen);
+            sf::Vector2f mousePosition = screen->mapPixelToCoords(position);
+            if (mousePosition.x >= 10.f && mousePosition.x <= 100.f) {
+                totalCost--;
+                totalCostText.setString("cost \t left: \t" +
+                                        std::to_string(totalCost));
+                currentAmountFood++;
+                foodInfo.setString("1kg - 1 coin \t (Already have: \t" +
+                               std::to_string(currentAmountFood) + "kg)");
+            }
+        }
+
+        void update(sf::Time deltaTime) {
+            if (creature.getPosition().y > 300.f && move.y < 0) {
+                creature.move(move * deltaTime.asSeconds());
+            } else {
+                foodSprite.setScale(0.15, 0.15);
+                foodInfo.setCharacterSize(35);
+            }
+        }
+
+        void render() {
+            screen->clear();
+            screen->draw(backgroundSprite);
+            screen->draw(foodSprite);
+            screen->draw(foodInfo);
+            screen->draw(totalCostText);
+            screen->draw(creature);
+            screen->display();
+        }
+
         std::shared_ptr<sf::RenderWindow> screen;
         std::vector<Person> companion;
+        sf::Time TimePerFrame = sf::seconds(1.f / 120.f);
+        sf::Image image, foodImage;
+        sf::Texture tex, background, foodTexture;
+        sf::Sprite creature, backgroundSprite, foodSprite;
+        sf::Font font;
+        sf::Text totalCostText, foodInfo;
+        sf::Vector2f move{0, -200.f};
+
+        int totalCost = 100;
+        int currentAmountFood = 0;
 };
 
 class MerchantScreen {
@@ -143,15 +247,12 @@ class MerchantScreen {
                                 armorSwordSprite.setPosition(380.f, 180.f);
                                 if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
                                     Shop s(screen, companion);
-                                    //s.run();
+                                    s.run();
                                 }
                             } else {
                                 armorSwordSprite.setPosition(400.f, 200.f);
                                 armorSwordSprite.setScale(0.3, 0.3);
                             }
-
-
-                            //std::cout << worldPosition.x << ' ' << worldPosition.y << '\n';
                         }
                     }
                 }
@@ -475,15 +576,15 @@ class LoadingScreen {
 
 int main() {
 
-    /*
+
     auto p = std::make_shared<sf::RenderWindow>(sf::VideoMode(1000, 600), "D&D");
     std::vector<Person> w;
 
-    MerchantScreen s(p, w);
+    Shop s(p, w);
     s.run();
 
-    */
 
-    LoadingScreen l;
-    l.run();
+
+    //LoadingScreen l;
+    //l.run();
 }
