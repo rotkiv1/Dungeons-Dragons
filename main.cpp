@@ -6,19 +6,35 @@
 #include <windows.h>
 
 class Person {
+
     public:
 
-        Person(std::string _name) : name(_name) {}
+        Person(std::string _name)
+        : name(_name) {}
 
-        std::string name;
+        std::string name, armor, weapon;
         int fullness = 10;
         bool isAlive = true;
-        std::string armor;
-        std::string weapon;
         int ingredientsAmount = 0;
 };
 
+class Shop {
+
+    public:
+        Shop(std::shared_ptr<sf::RenderWindow> _screen,
+             const std::vector<Person>& _companion)
+        : screen(_screen), companion(_companion) {
+        }
+
+
+    private:
+
+        std::shared_ptr<sf::RenderWindow> screen;
+        std::vector<Person> companion;
+};
+
 class MerchantScreen {
+
     public:
 
         MerchantScreen(std::shared_ptr<sf::RenderWindow> previous,
@@ -29,6 +45,13 @@ class MerchantScreen {
             image.loadFromFile("seller.png");
             image.createMaskFromColor(sf::Color::Black);
             tex.loadFromImage(image);
+
+            armorSwordImage.loadFromFile("eq.png");
+            armorSwordImage.createMaskFromColor(sf::Color::Black);
+            armorSwordTexture.loadFromImage(armorSwordImage);
+            armorSwordSprite.setTexture(armorSwordTexture);
+            armorSwordSprite.setScale(0, 0);
+            armorSwordSprite.setPosition(400.f, 200.f);
 
             creature.setTexture(tex);
             creature.setPosition(-50.f, 600.f);
@@ -80,9 +103,6 @@ class MerchantScreen {
             sf::Event event;
             while (screen->pollEvent(event)) {
                 switch (event.type) {
-                    case sf::Event::TextEntered:
-                        handlePlayerInput(event.key.code);
-                        break;
                     case sf::Event::Closed:
                         screen->close();
                         break;
@@ -90,16 +110,12 @@ class MerchantScreen {
             }
         }
 
-        void handlePlayerInput(sf::Keyboard::Key name) {
-
-        }
-
         void update(sf::Time deltaTime) {
-            if (creature.getPosition().y > 300.f) {
+            if (creature.getPosition().y > 300.f && move.y < 0) {
                 creature.move(move * deltaTime.asSeconds());
             } else {
                 textCloud.setScale(1.3, 1.f);
-                TimePerFrame = sf::seconds(1.f / 20.f);
+                TimePerFrame = sf::seconds(1.f / 200.f);
                 if (iText < strlen(text)) {
                     introduce.setString(introduce.getString() + text[iText++]);
                     if (text[iText - 1] == '\n' && text[iText - 2] == '.') {
@@ -113,8 +129,29 @@ class MerchantScreen {
                         textCloud.setScale(0.f, 0.f);
                         TimePerFrame = sf::seconds(1.f / 120.f);
                         move.y = 200.f;
-                        if (creature.getPosition().y <= 900.f) {
+                        if (creature.getPosition().y <= 600.f) {
                             creature.move(move * deltaTime.asSeconds());
+                        } else {
+                            armorSwordSprite.setScale(0.3, 0.3);
+                            sf::Vector2i position = sf::Mouse::getPosition(*screen);
+                            sf::Vector2f worldPosition = screen->mapPixelToCoords(position);
+                            auto x = worldPosition.x;
+                            auto y = worldPosition.y;
+                            if (x >= 400.f && x <= 200.f + armorSwordSprite.getPosition().x &&
+                                y >= 200.f && y <= 200.f + armorSwordSprite.getPosition().y) {
+                                armorSwordSprite.setScale(0.4, 0.4);
+                                armorSwordSprite.setPosition(380.f, 180.f);
+                                if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+                                    Shop s(screen, companion);
+                                    //s.run();
+                                }
+                            } else {
+                                armorSwordSprite.setPosition(400.f, 200.f);
+                                armorSwordSprite.setScale(0.3, 0.3);
+                            }
+
+
+                            //std::cout << worldPosition.x << ' ' << worldPosition.y << '\n';
                         }
                     }
                 }
@@ -128,16 +165,17 @@ class MerchantScreen {
             screen->draw(introduce);
             screen->draw(warning);
             screen->draw(creature);
+            screen->draw(armorSwordSprite);
             screen->display();
         }
 
         std::shared_ptr<sf::RenderWindow> screen;
         std::vector<Person> companion;
         sf::Time TimePerFrame = sf::seconds(1.f / 120.f); /* 1 / 30.f is fine */
-        sf::Sprite background, creature, textCloud, merchantSprite;
-        sf::Texture textureBackground, merchant, tex, cloudTex;
+        sf::Sprite background, creature, textCloud, merchantSprite, armorSwordSprite;
+        sf::Texture textureBackground, merchant, tex, cloudTex, armorSwordTexture;
         sf::Text introduce, warning;
-        sf::Image image, cloud;
+        sf::Image image, cloud, armorSwordImage;
         sf::Font font;
         int iText = 0;
         int iWarning = 0;
@@ -161,6 +199,7 @@ class MerchantScreen {
 };
 
 class Screen2 {
+
     public:
 
         Screen2(std::shared_ptr<sf::RenderWindow> previous)
@@ -435,6 +474,7 @@ class LoadingScreen {
 };
 
 int main() {
+
     /*
     auto p = std::make_shared<sf::RenderWindow>(sf::VideoMode(1000, 600), "D&D");
     std::vector<Person> w;
@@ -443,6 +483,7 @@ int main() {
     s.run();
 
     */
+
     LoadingScreen l;
     l.run();
 }
